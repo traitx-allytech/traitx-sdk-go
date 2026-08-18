@@ -1,0 +1,430 @@
+{
+  "spec": "1.0.0",
+  "description": "Canonical inputs and expected outputs for the TraitX decision resolution algorithm (SPEC.md section 6). Every language SDK must pass all vectors.",
+  "defaults": {
+    "config": {
+      "failureMode": "allow",
+      "clientErrorMode": "allow",
+      "thresholds": { "challenge": 40, "deny": 70 },
+      "denyOnSignals": [],
+      "challengeOnSignals": [],
+      "enforceShadowDecisions": false
+    }
+  },
+  "vectors": [
+    {
+      "name": "enforced deny from policy chain",
+      "config": {},
+      "http": {
+        "status": 200,
+        "body": {
+          "score": 88,
+          "signals": ["bot_behavior"],
+          "policy": {
+            "action": "deny",
+            "matched": [{ "id": "p1", "name": "CY7 Known Bot User-Agent", "action": "deny" }]
+          }
+        }
+      },
+      "expect": {
+        "action": "deny",
+        "observedAction": "deny",
+        "enforced": true,
+        "reason": "policy_match",
+        "score": 88,
+        "riskLevel": "critical",
+        "degraded": false,
+        "matchedCount": 1
+      }
+    },
+    {
+      "name": "enforced challenge from policy chain",
+      "config": {},
+      "http": {
+        "status": 200,
+        "body": {
+          "score": 52,
+          "signals": ["new_device"],
+          "policy": {
+            "action": "challenge",
+            "matched": [{ "id": "p7", "name": "P7 New Device Step-Up", "action": "challenge" }]
+          }
+        }
+      },
+      "expect": {
+        "action": "challenge",
+        "observedAction": "challenge",
+        "enforced": true,
+        "reason": "policy_match",
+        "riskLevel": "medium",
+        "degraded": false
+      }
+    },
+    {
+      "name": "explicit policy allow wins over a high score",
+      "config": {},
+      "http": {
+        "status": 200,
+        "body": {
+          "score": 95,
+          "signals": ["proxy_ip", "tor_ip"],
+          "policy": {
+            "action": "allow",
+            "matched": [{ "id": "p1", "name": "P1 Trusted Allowlist Bypass", "action": "allow" }]
+          }
+        }
+      },
+      "expect": {
+        "action": "allow",
+        "observedAction": "allow",
+        "enforced": true,
+        "reason": "policy_match",
+        "riskLevel": "critical",
+        "degraded": false
+      }
+    },
+    {
+      "name": "shadow policy is observed but not enforced",
+      "config": {},
+      "http": {
+        "status": 200,
+        "body": {
+          "score": 88,
+          "signals": ["bot_behavior"],
+          "policy": {
+            "action": "deny",
+            "matched": [{ "id": "p1", "name": "CY7", "action": "deny", "pass_through": true }]
+          }
+        }
+      },
+      "expect": {
+        "action": "allow",
+        "observedAction": "deny",
+        "enforced": false,
+        "reason": "shadow",
+        "riskLevel": "critical",
+        "degraded": false
+      }
+    },
+    {
+      "name": "shadow policy is enforced when enforceShadowDecisions is on",
+      "config": { "enforceShadowDecisions": true },
+      "http": {
+        "status": 200,
+        "body": {
+          "score": 88,
+          "policy": {
+            "action": "deny",
+            "matched": [{ "id": "p1", "name": "CY7", "action": "deny", "pass_through": true }]
+          }
+        }
+      },
+      "expect": {
+        "action": "deny",
+        "observedAction": "deny",
+        "enforced": false,
+        "reason": "policy_match",
+        "degraded": false
+      }
+    },
+    {
+      "name": "mixed shadow and live policies enforce the live one",
+      "config": {},
+      "http": {
+        "status": 200,
+        "body": {
+          "score": 71,
+          "policy": {
+            "action": "deny",
+            "matched": [
+              { "id": "p1", "name": "shadow rule", "action": "deny", "pass_through": true },
+              { "id": "p2", "name": "live rule", "action": "deny", "pass_through": false }
+            ]
+          }
+        }
+      },
+      "expect": {
+        "action": "deny",
+        "observedAction": "deny",
+        "enforced": true,
+        "reason": "policy_match",
+        "degraded": false
+      }
+    },
+    {
+      "name": "shadow flag on a non-deciding policy does not suppress enforcement",
+      "config": {},
+      "http": {
+        "status": 200,
+        "body": {
+          "score": 71,
+          "policy": {
+            "action": "deny",
+            "matched": [
+              { "id": "p1", "name": "unrelated challenge rule", "action": "challenge", "pass_through": true },
+              { "id": "p2", "name": "deny rule", "action": "deny" }
+            ]
+          }
+        }
+      },
+      "expect": {
+        "action": "deny",
+        "enforced": true,
+        "reason": "policy_match"
+      }
+    },
+    {
+      "name": "score above deny threshold with no policy action",
+      "config": {},
+      "http": { "status": 200, "body": { "score": 82, "signals": ["high_activity_ip"] } },
+      "expect": {
+        "action": "deny",
+        "observedAction": null,
+        "enforced": true,
+        "reason": "score_threshold",
+        "riskLevel": "critical",
+        "degraded": false
+      }
+    },
+    {
+      "name": "score in challenge band with no policy action",
+      "config": {},
+      "http": { "status": 200, "body": { "score": 40, "signals": [] } },
+      "expect": {
+        "action": "challenge",
+        "reason": "score_threshold",
+        "riskLevel": "medium",
+        "degraded": false
+      }
+    },
+    {
+      "name": "score below challenge threshold allows",
+      "config": {},
+      "http": { "status": 200, "body": { "score": 12, "signals": [] } },
+      "expect": {
+        "action": "allow",
+        "observedAction": null,
+        "reason": "no_match",
+        "riskLevel": "low",
+        "degraded": false
+      }
+    },
+    {
+      "name": "empty policy block is treated as no action",
+      "config": {},
+      "http": { "status": 200, "body": { "score": 10, "policy": { "matched": [] } } },
+      "expect": { "action": "allow", "reason": "no_match", "matchedCount": 0 }
+    },
+    {
+      "name": "unrecognised action string is treated as absent, not as allow",
+      "config": {},
+      "http": { "status": 200, "body": { "score": 90, "policy": { "action": "quarantine" } } },
+      "expect": { "action": "deny", "observedAction": null, "reason": "score_threshold" }
+    },
+    {
+      "name": "signal escalation beats a low score",
+      "config": { "denyOnSignals": ["tor_ip"] },
+      "http": { "status": 200, "body": { "score": 5, "signals": ["tor_ip", "new_device"] } },
+      "expect": {
+        "action": "deny",
+        "reason": "signal_override",
+        "riskLevel": "low",
+        "degraded": false
+      }
+    },
+    {
+      "name": "signal escalation never downgrades a threshold decision",
+      "config": { "challengeOnSignals": ["new_device"] },
+      "http": { "status": 200, "body": { "score": 95, "signals": ["new_device"] } },
+      "expect": { "action": "deny", "reason": "score_threshold" }
+    },
+    {
+      "name": "signal rules are ignored when the policy chain decided",
+      "config": { "denyOnSignals": ["tor_ip"] },
+      "http": {
+        "status": 200,
+        "body": {
+          "score": 5,
+          "signals": ["tor_ip"],
+          "policy": { "action": "allow", "matched": [{ "id": "p1", "name": "allowlist" }] }
+        }
+      },
+      "expect": { "action": "allow", "reason": "policy_match" }
+    },
+    {
+      "name": "deny signal outranks challenge signal",
+      "config": { "denyOnSignals": ["headless_browser"], "challengeOnSignals": ["new_device"] },
+      "http": { "status": 200, "body": { "score": 0, "signals": ["new_device", "headless_browser"] } },
+      "expect": { "action": "deny", "reason": "signal_override" }
+    },
+    {
+      "name": "block is an accepted alias for deny",
+      "config": {},
+      "http": { "status": 200, "body": { "score": 60, "policy": { "action": "BLOCK" } } },
+      "expect": { "action": "deny", "observedAction": "deny", "reason": "policy_match" }
+    },
+    {
+      "name": "step_up is an accepted alias for challenge and a leading $ is stripped",
+      "config": {},
+      "http": { "status": 200, "body": { "score": 10, "policy": { "action": "$step_up" } } },
+      "expect": { "action": "challenge", "observedAction": "challenge", "reason": "policy_match" }
+    },
+    {
+      "name": "action read from top-level decision string",
+      "config": {},
+      "http": { "status": 200, "body": { "risk_score": 33, "decision": "challenge" } },
+      "expect": { "action": "challenge", "reason": "policy_match", "score": 33, "riskLevel": "medium" }
+    },
+    {
+      "name": "matched policies read from matched_policies with inline_action",
+      "config": {},
+      "http": {
+        "status": 200,
+        "body": {
+          "score": 20,
+          "matched_policies": [
+            { "policy_id": "px", "policy_name": "FR3 Sanctions", "inline_action": "deny", "event_group": "$transaction" }
+          ],
+          "policy": { "action": "deny" }
+        }
+      },
+      "expect": {
+        "action": "deny",
+        "reason": "policy_match",
+        "matchedCount": 1,
+        "firstMatchedId": "px",
+        "firstMatchedName": "FR3 Sanctions"
+      }
+    },
+    {
+      "name": "camelCase passThrough flag is honoured",
+      "config": {},
+      "http": {
+        "status": 200,
+        "body": { "score": 90, "policy": { "action": "deny", "matched": [{ "id": "p1", "passThrough": true, "action": "deny" }] } }
+      },
+      "expect": { "action": "allow", "observedAction": "deny", "enforced": false, "reason": "shadow" }
+    },
+    {
+      "name": "missing score defaults to zero and low risk",
+      "config": {},
+      "http": { "status": 200, "body": { "signals": [] } },
+      "expect": { "action": "allow", "reason": "no_match", "score": 0, "riskLevel": "low" }
+    },
+    {
+      "name": "risk level boundaries: 29 is low",
+      "config": {},
+      "http": { "status": 200, "body": { "score": 29 } },
+      "expect": { "action": "allow", "riskLevel": "low" }
+    },
+    {
+      "name": "risk level boundaries: 30 is medium",
+      "config": {},
+      "http": { "status": 200, "body": { "score": 30 } },
+      "expect": { "action": "allow", "riskLevel": "medium" }
+    },
+    {
+      "name": "risk level boundaries: 60 is high",
+      "config": {},
+      "http": { "status": 200, "body": { "score": 60 } },
+      "expect": { "action": "challenge", "riskLevel": "high" }
+    },
+    {
+      "name": "risk level boundaries: 80 is critical",
+      "config": {},
+      "http": { "status": 200, "body": { "score": 80 } },
+      "expect": { "action": "deny", "riskLevel": "critical" }
+    },
+    {
+      "name": "transport failure falls back to failureMode allow",
+      "config": {},
+      "http": { "transportError": "connection reset by peer" },
+      "expect": {
+        "action": "allow",
+        "reason": "degraded",
+        "degraded": true,
+        "enforced": false,
+        "statusCode": 0,
+        "hasError": true
+      }
+    },
+    {
+      "name": "transport failure with failureMode challenge",
+      "config": { "failureMode": "challenge" },
+      "http": { "transportError": "timeout after 2500ms" },
+      "expect": { "action": "challenge", "reason": "degraded", "degraded": true, "hasError": true }
+    },
+    {
+      "name": "transport failure with failureMode deny",
+      "config": { "failureMode": "deny" },
+      "http": { "transportError": "timeout after 2500ms" },
+      "expect": { "action": "deny", "reason": "degraded", "degraded": true, "hasError": true }
+    },
+    {
+      "name": "5xx after retries is a transport failure",
+      "config": { "failureMode": "challenge" },
+      "http": { "status": 503, "body": { "error": "Service Unavailable" } },
+      "expect": { "action": "challenge", "reason": "degraded", "degraded": true, "statusCode": 503, "hasError": true }
+    },
+    {
+      "name": "429 after retries is a transport failure",
+      "config": {},
+      "http": { "status": 429, "body": { "error": "Too Many Requests" } },
+      "expect": { "action": "allow", "reason": "degraded", "degraded": true, "statusCode": 429 }
+    },
+    {
+      "name": "401 is a client error, not a risk signal",
+      "config": {},
+      "http": { "status": 401, "body": { "error": "Unauthorized", "message": "Invalid or expired API key" } },
+      "expect": {
+        "action": "allow",
+        "reason": "client_error",
+        "degraded": true,
+        "statusCode": 401,
+        "hasError": true
+      }
+    },
+    {
+      "name": "400 is a client error",
+      "config": {},
+      "http": { "status": 400, "body": { "error": "Bad Request", "message": "request_id is required" } },
+      "expect": { "action": "allow", "reason": "client_error", "degraded": true, "statusCode": 400 }
+    },
+    {
+      "name": "clientErrorMode deny fails closed on a bad key",
+      "config": { "clientErrorMode": "deny" },
+      "http": { "status": 401, "body": { "error": "Unauthorized" } },
+      "expect": { "action": "deny", "reason": "client_error", "degraded": true, "statusCode": 401 }
+    },
+    {
+      "name": "custom thresholds are honoured",
+      "config": { "thresholds": { "challenge": 20, "deny": 50 } },
+      "http": { "status": 200, "body": { "score": 55 } },
+      "expect": { "action": "deny", "reason": "score_threshold" }
+    },
+    {
+      "name": "no enrichment data is surfaced as missing device context",
+      "config": {},
+      "http": {
+        "status": 200,
+        "body": { "score": 0, "debug": { "abuse_ip": { "reason": "no_enrichment_data" } } }
+      },
+      "expect": { "action": "allow", "reason": "no_match", "hasDeviceContext": false }
+    },
+    {
+      "name": "enrichment present means device context is available",
+      "config": {},
+      "http": {
+        "status": 200,
+        "body": { "score": 10, "debug": { "abuse_ip": { "country_code": "SA", "proxy": false } } }
+      },
+      "expect": { "action": "allow", "hasDeviceContext": true }
+    },
+    {
+      "name": "non-JSON 200 body degrades rather than throwing",
+      "config": {},
+      "http": { "status": 200, "rawBody": "<html>502 from a proxy</html>" },
+      "expect": { "action": "allow", "reason": "degraded", "degraded": true, "hasError": true }
+    }
+  ]
+}

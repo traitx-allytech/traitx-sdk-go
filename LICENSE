@@ -1,0 +1,86 @@
+TraitX SDK License Agreement
+
+Copyright (c) 2026 AllyTech. All rights reserved.
+TraitX is a product of AllyTech. Contact: traitx@allytech.sa
+
+This software, including the source code, compiled artifacts, documentation and any
+accompanying materials (the "SDK"), is proprietary and confidential to AllyTech. It is
+licensed, not sold.
+
+1. GRANT OF LICENCE
+
+   Subject to your compliance with this Agreement and with a valid subscription to, or
+   written agreement for, the TraitX service, AllyTech grants you a non-exclusive,
+   non-transferable, non-sublicensable, revocable licence to:
+
+   (a) install, copy and use the SDK internally, including in your production systems;
+   (b) integrate the SDK into your own applications for the sole purpose of interacting
+       with the TraitX service; and
+   (c) modify the SDK internally as needed to complete that integration.
+
+2. RESTRICTIONS
+
+   You may not:
+
+   (a) distribute, publish, sublicense, sell, rent or lease the SDK, or any modified
+       version of it, as a standalone product or as part of a product whose primary
+       value is the SDK itself;
+   (b) use the SDK to build, train or operate a service that competes with TraitX;
+   (c) use the SDK to interact with any service other than TraitX;
+   (d) remove, obscure or alter any copyright, trade mark or other proprietary notice;
+   (e) reverse engineer, decompile or disassemble any compiled portion of the SDK,
+       except to the extent that such a restriction is prohibited by applicable law; or
+   (f) disclose the results of any benchmark of the SDK without AllyTech's prior
+       written consent.
+
+   Distributing the SDK as an embedded dependency of your own application, where the
+   SDK is not the product being offered, is permitted under Section 1(b).
+
+3. OWNERSHIP
+
+   AllyTech retains all right, title and interest in and to the SDK, including all
+   intellectual property rights. No rights are granted other than those expressly set
+   out in this Agreement.
+
+4. TERM AND TERMINATION
+
+   This licence takes effect when you first use the SDK and continues until terminated.
+   It terminates automatically if you breach any term of this Agreement, and it
+   terminates when your subscription to or agreement for the TraitX service ends. On
+   termination you must stop using the SDK and destroy all copies in your possession.
+
+5. NO WARRANTY
+
+   THE SDK IS PROVIDED "AS IS" AND "AS AVAILABLE", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT.
+
+   The SDK returns risk decisions produced by the TraitX service. Those decisions are
+   advisory inputs to your own controls. You remain solely responsible for the security,
+   fraud, regulatory and compliance outcomes of your systems, and for how your
+   application acts on any decision the SDK returns.
+
+6. LIMITATION OF LIABILITY
+
+   TO THE MAXIMUM EXTENT PERMITTED BY LAW, ALLYTECH SHALL NOT BE LIABLE FOR ANY
+   INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY OR PUNITIVE DAMAGES, NOR FOR
+   ANY LOSS OF PROFITS, REVENUE, DATA, GOODWILL OR BUSINESS INTERRUPTION, ARISING OUT OF
+   OR RELATING TO THE SDK, HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY.
+
+   ALLYTECH'S TOTAL AGGREGATE LIABILITY ARISING OUT OF OR RELATING TO THE SDK SHALL NOT
+   EXCEED THE AMOUNTS YOU PAID FOR THE TRAITX SERVICE IN THE TWELVE (12) MONTHS
+   PRECEDING THE EVENT GIVING RISE TO THE CLAIM.
+
+7. GOVERNING LAW
+
+   This Agreement is governed by the laws of the Kingdom of Saudi Arabia, without regard
+   to its conflict of laws rules. The competent courts of Riyadh shall have exclusive
+   jurisdiction over any dispute arising out of or relating to this Agreement.
+
+8. ENTIRE AGREEMENT
+
+   If you and AllyTech have a signed written agreement covering the TraitX service, that
+   agreement prevails over this Agreement to the extent of any conflict. Otherwise this
+   Agreement is the entire agreement between the parties regarding the SDK.
+
+For licensing enquiries, contact traitx@allytech.sa
