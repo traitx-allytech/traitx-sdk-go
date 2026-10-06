@@ -1,7 +1,7 @@
 # TraitX Decision SDK — Go
 
 Turns a TraitX risk evaluation into one of three answers: **allow**, **challenge**,
-**deny**. Go 1.19+, standard library only.
+**deny**. Go 1.22+, standard library only.
 
 Wire contract and decision algorithm: [`SPEC.md`](SPEC.md).
 

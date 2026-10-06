@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Go ${{ matrix.go }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.22', '1.23', 'stable']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+      - name: go.mod is tidy
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum || { echo "go mod tidy produced changes" >&2; exit 1; }
+      - name: gofmt
+        run: |
+          OUT="$(gofmt -l .)"
+          if [ -n "$OUT" ]; then echo "gofmt needed on:"; echo "$OUT"; exit 1; fi
+      - run: go vet ./...
+      - run: go build ./...
+      - name: Unit + conformance tests
+        run: go test -race -count=1 ./...
