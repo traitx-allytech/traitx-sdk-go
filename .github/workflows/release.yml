@@ -1,0 +1,42 @@
+name: Release
+
+# Go modules are "published" by the tag itself (the Go proxy fetches it from
+# GitHub). This workflow runs only for version tags: it re-runs CI on the
+# tagged commit and, only if that passes, verifies the tag is consistent and
+# warms the module proxy.
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    name: Verify tag + warm module proxy
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Tag must match traitx.Version and have a CHANGELOG entry
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          VER="$(sed -n 's/^const Version = "\([^"]*\)"/\1/p' config.go)"
+          if [ "$TAG" != "$VER" ]; then
+            echo "tag v$TAG does not match traitx.Version $VER in config.go" >&2
+            exit 1
+          fi
+          grep -q "^## \[$TAG\]" CHANGELOG.md || { echo "CHANGELOG.md has no [$TAG] section" >&2; exit 1; }
+      - name: Warm proxy.golang.org (dry run placeholder)
+        # TODO(release): once the first tag exists, drop --dry-run semantics by
+        # running the `go list` below for real; it asks the public proxy to
+        # fetch the tag so `go get github.com/traitx-allytech/traitx-sdk-go@vX.Y.Z`
+        # works immediately. No secrets are needed for a public module.
+        run: |
+          echo "would run: GOPROXY=https://proxy.golang.org GOFLAGS=-mod=mod go list -m github.com/traitx-allytech/traitx-sdk-go@${GITHUB_REF_NAME}"
